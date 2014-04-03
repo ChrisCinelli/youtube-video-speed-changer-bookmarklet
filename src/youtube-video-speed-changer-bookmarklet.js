@@ -2,7 +2,7 @@
  * Bookmarklet to change the speed (or playback rate) of YouTube Videos
  * but it should work on any other website with HTML5 video tags
  * 
- * Copyright(c) 2012 Chris Cinelli 
+ * Copyright(c) 2014 Chris Cinelli 
  * MIT Licensed. 
  * 
  * @author: Chris Cinelli
@@ -17,11 +17,23 @@
   var lsMemCnst    = prefix+"memory";
   var controlId    = prefix+"control";
 
-  //Define a pseudo jquery (just for selction)
-  function $(selector){ return document.querySelectorAll(selector);} 
+  //Define a pseudo jquery (just for selection)
+  function $(selector, ref){ 
+      return (ref ? ref : document).querySelectorAll(selector);
+  } 
+  
+  //In case I need iframes content
+  function iframeRef( frameRef ){
+    try { 
+        return frameRef.contentWindow ? frameRef.contentWindow.document : frameRef.contentDocument;
+    } catch (e) {
+        console.log("iframe document is not reachable: "+frameRef.src);
+        return false;
+    }
+  }
 
   //I do not think that any browser that support playbackRate on video tag does not have localStorage... but anyway 
-  function supports_html5_storage() {
+  function supports_html5_storage(){
     try {
       return 'localStorage' in window && window['localStorage'] !== null;
     } catch (e) {
@@ -47,13 +59,28 @@
     }
   }   
 
-  var firstVideo = $("video")[0];
-  if (!firstVideo){
+  //Normally get the first video in the page
+  var currentVideo = $("video")[0];
+  if (!currentVideo){
+    //otherwise ti tries to get the first video in the iframes
+    var iframes = $("iframe");
+    if (iframes.length > 0) {
+      for(var i  = 0; i < iframes.length; i++) {
+        var iframeDocument = iframeRef(iframes[i]);
+        if(!iframeDocument) continue;
+        currentVideo = $("video", iframeDocument)[0]; //First video in the iframe
+        if(currentVideo) break;
+      }
+    }
+  }
+  if (!currentVideo) {
     //Ugly alert, but seriusly, do we really want to implement a nice styled modal just for this?
-    alert("This page does not have any HTML5 videos (this does not work with Flash videos)!");
+    alert("This page does not have any HTML5 videos or they are not reachable (this does not work with Flash videos)!");
     return;
   } 
-  if (!firstVideo.playbackRate){
+  
+
+  if (!currentVideo.playbackRate){
     alert("This browser does not support changes of playback rate on HTML5 videos! Try Google Chrome!");
     return;
   } 
@@ -64,19 +91,20 @@
   var oldElement = $("#"+controlId)[0];
   if(oldElement) {
       body.removeChild(oldElement);
-      firstVideo.playbackRate = 1; //Also set back to normal the playback rate
+      currentVideo.playbackRate = 1; //Also set back to normal the playback rate
       return;
   }
   
   //Design the element and attach it
   var controller = document.createElement('div');
-  var stdStyle = ";background-color:#eee;border:1px solid #333;border-radius:3px;margin:2px";
+  var boxSizing = "box-sizing:border-box;";
+  var stdStyle = ";background-color:#eee;border:1px solid #333;border-radius:3px;margin:2px;"+boxSizing;
   var boxStyle = stdStyle + ";padding:2px";
   var btnStyle = stdStyle + ";padding:2px 3px";
   controller.setAttribute("id",controlId);
-  controller.innerHTML = '<div style="font:12px monospace;position:fixed;left:2px;top:2px;z-index:9999;box-shadow:1px 1px 4px #666'+boxStyle+'">'
+  controller.innerHTML = '<div style="font:12px monospace;position:fixed;left:2px;top:2px;z-index:2139999999;box-shadow:1px 1px 4px #666'+boxStyle+'">'
                             +'<button class="plus" style="'+btnStyle+'">+</button>'
-                            +'<input type="text" style="border:0;background-color:#eee;width:2em; ">%'
+                            +'<input type="text" style="border:0;padding:0;background-color:#eee;height:26px;margin:2px 0;width:24px;'+boxSizing+'">%'
                             +'<button class="minus" style="'+btnStyle+'">-</button>'
                         +'</div>';
 
@@ -88,7 +116,7 @@
   function updateSpeed(){
     var s = speedController.value;
     
-    firstVideo.playbackRate = s / 100.0;
+    currentVideo.playbackRate = s / 100.0;
     setSpeed(s);
   };
   
@@ -107,6 +135,6 @@
   
   //Intialize the speed to the last one or the default
   speedController.value = getSpeed();
-  firstVideo.playbackRate = speedController.value / 100.0;
+  currentVideo.playbackRate = speedController.value / 100.0;
   
 })(document, window);
