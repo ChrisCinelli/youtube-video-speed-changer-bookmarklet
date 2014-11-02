@@ -26,7 +26,7 @@ Unfortunately github does not let me to add a bookmarklet on this page. Use this
 
 Or write manually create a bookmark with this code as: 
 ```  javascript
-   javascript:void((function(){var e=document.createElement('script');e.setAttribute('type','text/javascript');e.setAttribute('charset','UTF-8');e.setAttribute('src','https://raw.github.com/ChrisCinelli/youtube-video-speed-changer-bookmarklet/master/src/youtube-video-speed-changer-bookmarklet.min.js?r='+Math.random()*99999999);document.body.appendChild(e)})());)
+   javascript:void((function(){var e=document.createElement('script');e.setAttribute('type','text/javascript');e.setAttribute('charset','UTF-8');e.setAttribute('src','https://rawgit.com/ChrisCinelli/youtube-video-speed-changer-bookmarklet/master/src/youtube-video-speed-changer-bookmarklet.min.js?r='+Math.random()*99999999);document.body.appendChild(e)})());)
 ```
 
 
